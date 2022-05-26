@@ -1,0 +1,719 @@
+swagger: '2.0'
+info:
+  description: >-
+    This is a sample server for communications with Dark Souls.  For this sample, you can use the api key
+    `special-key` to test the authorization filters.
+  version: 1.0.6
+  title: Dark Soul Communications
+  termsOfService: http://darksouls.com
+  contact:
+    email: info@darksouls.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+host: darksouls.com
+basePath: /darksoul
+tags:
+  - name: darksoul
+    description: общение с темными душами
+    externalDocs:
+      description: документация
+      url: http://darksouls.com
+  - name: whitesoul
+    description: общение с белой душой
+  - name: user
+    description: пользователи системы
+    externalDocs:
+      description: пользовательская документация
+      url: http://darksouls.com
+schemes:
+  - https
+  - http
+paths:
+  /darksouls/{DarkSoulId}/uploadImage:
+    post:
+      tags:
+        - darksoul
+      summary: uploads an image
+      description: ''
+      operationId: uploadFile
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: DarkSoulId
+          in: path
+          description: ID of any dark soul
+          required: true
+          type: integer
+          format: int64
+        - name: additionalMetadata
+          in: formData
+          description: Additional data to pass to server
+          required: false
+          type: string
+        - name: file
+          in: formData
+          description: file to upload
+          required: false
+          type: file
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ApiResponse'
+      security:
+        - darksoul_auth:
+            - write:darksouls
+            - read:darksouls
+  /darksoul:
+    post:
+      tags:
+        - darksoul
+      summary: Add a new pet to the store
+      description: ''
+      operationId: addDarkSoul
+      consumes:
+        - application/json
+        - application/xml
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - in: body
+          name: body
+          description: DarkSoul object that needs to be added to the store
+          required: true
+          schema:
+            $ref: '#/definitions/Darksoul'
+      responses:
+        '405':
+          description: Invalid input
+      security:
+        - darksoul_auth:
+            - write:darksouls
+            - read:darksouls
+    put:
+      tags:
+        - darksoul
+      summary: Update an existing Dark Soul
+      description: ''
+      operationId: updateDarkSoul
+      consumes:
+        - application/json
+        - application/xml
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - in: body
+          name: body
+          description: DarkSoul object that needs to be added to the store
+          required: true
+          schema:
+            $ref: '#/definitions/Darksoul'
+      responses:
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Dark Soul not found
+        '405':
+          description: Validation exception
+      security:
+        - darksoul_auth:
+            - write:darksouls
+            - read:darksouls
+  /darksoul/findByStatus:
+    get:
+      tags:
+        - darksoul
+      summary: Finds Dark Souls by status
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findDarkSoulByStatus
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: status
+          in: query
+          description: Status values that need to be considered for filter
+          required: true
+          type: array
+          items:
+            type: string
+            enum:
+              - available
+              - pending
+              - sold
+            default: available
+          collectionFormat: multi
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Darksoul'
+        '400':
+          description: Invalid status value
+      security:
+        - darksoul_auth:
+            - write:darksouls
+            - read:darksouls
+  /darksoul/findByTags:
+    get:
+      tags:
+        - darksoul
+      summary: Finds Dark Souls by tags
+      description: >-
+        Multiple tags can be provided with comma separated strings. Use tag1,
+        tag2, tag3 for testing.
+      operationId: findDarkSoulByTags
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: tags
+          in: query
+          description: Tags to filter by
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Darksoul'
+        '400':
+          description: Invalid tag value
+      security:
+        - darksoul_auth:
+            - write:darksouls
+            - read:darksouls
+      deprecated: true
+  /darksoul/{DarkSoulId}:
+    get:
+      tags:
+        - darksoul
+      summary: Find Dark Soul by ID
+      description: Returns a single pet
+      operationId: getDarkSoulById
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: DarkSoulId
+          in: path
+          description: ID of pet to return
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Darksoul'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Dark Sool not found
+      security:
+        - api_key: []
+    post:
+      tags:
+        - darksoul
+      summary: Updates a dark soul in the store with form data
+      description: ''
+      operationId: updateDarkSoulWithForm
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: DarkSoulId
+          in: path
+          description: ID of Dark Soul that needs to be updated
+          required: true
+          type: integer
+          format: int64
+        - name: name
+          in: formData
+          description: Updated name of the dark soul
+          required: false
+          type: string
+        - name: status
+          in: formData
+          description: Updated status of the dark soul
+          required: false
+          type: string
+      responses:
+        '405':
+          description: Invalid input
+      security:
+        - darksoul_auth:
+            - write:darksouls
+            - read:darksouls
+    delete:
+      tags:
+        - darksoul
+      summary: Deletes a dark soul
+      description: ''
+      operationId: deleteDarkSoul
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: api_key
+          in: header
+          required: false
+          type: string
+        - name: DarkSoulId
+          in: path
+          description: Dark Soul id to delete
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Dark Soul not found
+      security:
+        - darksoul_auth:
+            - write:darksouls
+            - read:darksouls
+  /hub/communication:
+    post:
+      tags:
+        - hub
+      summary: Starts a communication with dark soul
+      description: ''
+      operationId: startCommunication
+      consumes:
+        - application/json
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - in: body
+          name: body
+          description: communication with dark soul started
+          required: true
+          schema:
+            $ref: '#/definitions/Communication'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Communication'
+        '400':
+          description: Invalid Communication
+  /hub/communication/{communicationId}:
+    get:
+      tags:
+        - hub
+      summary: Find purchase communication by ID
+      description: >-
+        For valid response try integer IDs with value >= 1 and <= 10. Other
+        values will generated exceptions
+      operationId: getCommunicationById
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: communicationId
+          in: path
+          description: ID of communication that needs to be started
+          required: true
+          type: integer
+          maximum: 10
+          minimum: 1
+          format: int64
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Communication'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Communication not found
+    delete:
+      tags:
+        - hub
+      summary: Delete purchase communication by ID
+      description: >-
+        For valid response try integer IDs with positive integer value. Negative
+        or non-integer values will generate API errors
+      operationId: deleteCommunication
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: communicationId
+          in: path
+          description: ID of the order that needs to be deleted
+          required: true
+          type: integer
+          minimum: 1
+          format: int64
+      responses:
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Communication not found
+  /hub/inventory:
+    get:
+      tags:
+        - hub
+      summary: Returns communication inventories by status
+      description: Returns a map of status codes to quantities
+      operationId: getInventory
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+              format: int32
+      security:
+        - api_key: []
+  /user/createWithArray:
+    post:
+      tags:
+        - user
+      summary: Creates list of users with given input array
+      description: ''
+      operationId: createUsersWithArrayInput
+      consumes:
+        - application/json
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - in: body
+          name: body
+          description: List of user object
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+      responses:
+        default:
+          description: successful operation
+  /user/createWithList:
+    post:
+      tags:
+        - user
+      summary: Creates list of users with given input array
+      description: ''
+      operationId: createUsersWithListInput
+      consumes:
+        - application/json
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - in: body
+          name: body
+          description: List of user object
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+      responses:
+        default:
+          description: successful operation
+  /user/{username}:
+    get:
+      tags:
+        - user
+      summary: Get user by user name
+      description: ''
+      operationId: getUserByName
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: username
+          in: path
+          description: 'The name that needs to be fetched. Use user1 for testing. '
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+    put:
+      tags:
+        - user
+      summary: Updated user
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: username
+          in: path
+          description: name that need to be updated
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Updated user object
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        '400':
+          description: Invalid user supplied
+        '404':
+          description: User not found
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: username
+          in: path
+          description: The name that needs to be deleted
+          required: true
+          type: string
+      responses:
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+  /user/login:
+    get:
+      tags:
+        - user
+      summary: Logs user into the system
+      description: ''
+      operationId: loginUser
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: true
+          type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Expires-After:
+              type: string
+              format: date-time
+              description: date in UTC when token expires
+            X-Rate-Limit:
+              type: integer
+              format: int32
+              description: calls per hour allowed by the user
+          schema:
+            type: string
+        '400':
+          description: Invalid username/password supplied
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      description: ''
+      operationId: logoutUser
+      produces:
+        - application/json
+        - application/xml
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+  /user:
+    post:
+      tags:
+        - user
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: createUser
+      consumes:
+        - application/json
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - in: body
+          name: body
+          description: Created user object
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        default:
+          description: successful operation
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: api_key
+    in: header
+  darksoul_auth:
+    type: oauth2
+    authorizationUrl: https://darksoul.local/oauth/authorize
+    flow: implicit
+    scopes:
+      read:darksouls: read your dark souls
+      write:darksouls: modify dark souls in your account
+definitions:
+  ApiResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string
+  Category:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+    xml:
+      name: Category
+  Darksoul:
+    type: object
+    required:
+      - name
+      - photoUrls
+    properties:
+      id:
+        type: integer
+        format: int64
+      category:
+        $ref: '#/definitions/Category'
+      name:
+        type: string
+        example: doggie
+      photoUrls:
+        type: array
+        xml:
+          wrapped: true
+        items:
+          type: string
+          xml:
+            name: photoUrl
+      tags:
+        type: array
+        xml:
+          wrapped: true
+        items:
+          xml:
+            name: tag
+          $ref: '#/definitions/Tag'
+      status:
+        type: string
+        description: dark soul status in the store
+        enum:
+          - available
+          - pending
+          - sold
+    xml:
+      name: darksoul
+  Tag:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+    xml:
+      name: Tag
+  Communication:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      communicationId:
+        type: integer
+        format: int64
+      quantity:
+        type: integer
+        format: int32
+      shipDate:
+        type: string
+        format: date-time
+      status:
+        type: string
+        description: Communication Status
+        enum:
+          - placed
+          - approved
+          - delivered
+      complete:
+        type: boolean
+    xml:
+      name: Communication
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      username:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      userStatus:
+        type: integer
+        format: int32
+        description: User Status
+    xml:
+      name: User
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
